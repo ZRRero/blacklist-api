@@ -1,0 +1,27 @@
+syntax="proto3";
+option go_package = "zrrero/blacklist";
+
+service Blacklist {
+  rpc SaveBlacklistRecord(BlacklistRecordDto) returns (BlacklistRecordDto);
+  rpc SaveBlacklistRecordBatch(stream BlacklistRecordDto) returns (stream BlacklistRecordDto);
+  rpc GetBlacklistRecord(BlacklistRecordRequest) returns (BlacklistRecordDto);
+  rpc GetBlacklistRecordBatch(stream BlacklistRecordRequest) returns (stream BlacklistRecordDto);
+  rpc DeleteBlacklistRecord(BlacklistRecordRequest) returns (Empty);
+  rpc DeleteBatchBlacklistRecord(stream BlacklistRecordRequest) returns (Empty);
+}
+
+message BlacklistRecordRequest {
+  string record_id = 1;
+  string client_id = 2;
+  string product_id = 3;
+}
+
+message BlacklistRecordDto {
+  string record_id = 1;
+  string client_id = 2;
+  string product_id = 3;
+  string added_date = 4;
+  string reason = 5;
+}
+
+message Empty {}
