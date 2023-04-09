@@ -19,7 +19,9 @@ message BlacklistRecordRequest {
 message BlacklistRecordDto {
   string record_id = 1;
   string client_id = 2;
-  map<string, BlacklistProductRecordDto> products = 3;
+  string product_id = 3;
+  string added_date = 4;
+  string reason = 5;
 }
 
 message BlacklistProductRecordDto {
