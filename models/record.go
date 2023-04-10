@@ -19,8 +19,8 @@ func NewRecord(recordId, clientId, productId string) *Record {
 	return &Record{recordId: recordId, clientId: clientId, productId: productId, addedDate: time.Now().String()}
 }
 
-func (receiver *Record) sortId() string {
-	return fmt.Sprintf("%s:%s:%s", receiver.recordId, receiver.clientId, receiver.productId)
+func (receiver *Record) SortId() string {
+	return fmt.Sprintf("%s:%s", receiver.clientId, receiver.productId)
 }
 
 func FromDynamoItem(item map[string]*dynamodb.AttributeValue) (*Record, error) {
@@ -34,9 +34,9 @@ func FromDynamoItem(item map[string]*dynamodb.AttributeValue) (*Record, error) {
 }
 
 func (receiver *Record) ToDynamoItem() map[string]*dynamodb.AttributeValue {
-	id := receiver.sortId()
+	id := receiver.SortId()
 	record := make(map[string]*dynamodb.AttributeValue)
-	record["sortId"] = &dynamodb.AttributeValue{S: &id}
+	record["sort_id"] = &dynamodb.AttributeValue{S: &id}
 	record["record_id"] = &dynamodb.AttributeValue{S: &receiver.recordId}
 	record["client_id"] = &dynamodb.AttributeValue{S: &receiver.clientId}
 	record["product_id"] = &dynamodb.AttributeValue{S: &receiver.productId}
