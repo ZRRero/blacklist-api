@@ -54,3 +54,13 @@ func (receiver *Record) ToDto() *blacklist.BlacklistRecordDto {
 		Reason:    receiver.reason,
 	}
 }
+
+func FromDto(record *blacklist.BlacklistRecordDto) (*Record, error) {
+	return &Record{
+		recordId:  record.RecordId,
+		clientId:  record.ClientId,
+		productId: record.ProductId,
+		addedDate: record.AddedDate,
+		reason:    record.Reason,
+	}, nil
+}

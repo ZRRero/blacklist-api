@@ -1,6 +1,7 @@
 package apis
 
 import (
+	"blacklist-api/models"
 	"blacklist-api/pkg/clients"
 	blacklist "blacklist-api/tools/protos"
 	"context"
@@ -67,11 +68,49 @@ func (receiver *BlacklistServer) GetBlacklistRecordBatch(stream blacklist.Blackl
 }
 
 func (receiver *BlacklistServer) SaveBlacklistRecord(_ context.Context, request *blacklist.BlacklistRecordDto) (*blacklist.BlacklistRecordDto, error) {
-	return nil, nil
+	client, err := clients.NewClient(receiver.Table)
+	if err != nil {
+		return nil, err
+	}
+	record, err := client.SaveRecord(models.NewRecord(request.RecordId, request.ClientId, request.ProductId))
+	if err != nil {
+		return nil, err
+	}
+	return record.ToDto(), nil
 }
 
 func (receiver *BlacklistServer) SaveBlacklistRecordBatch(stream blacklist.Blacklist_SaveBlacklistRecordBatchServer) error {
-	return nil
+	client, err := clients.NewClient(receiver.Table)
+	if err != nil {
+		return err
+	}
+	requests := make([]*models.Record, 0, receiver.BatchSize)
+	for {
+		in, err := stream.Recv()
+		if err == io.EOF {
+			return nil
+		}
+		if err != nil {
+			return err
+		}
+		record, err := models.FromDto(in)
+		if err != nil {
+			return err
+		}
+		requests = append(requests, record)
+		if len(requests) == 25 {
+			result, err := client.SaveBatchRecords(requests)
+			if err != nil {
+				return err
+			}
+			for _, record := range result {
+				err = stream.Send(record.ToDto())
+				if err != nil {
+					return err
+				}
+			}
+		}
+	}
 }
 
 func (receiver *BlacklistServer) DeleteBlacklistRecord(_ context.Context, request *blacklist.BlacklistRecordRequest) (*blacklist.Empty, error) {
