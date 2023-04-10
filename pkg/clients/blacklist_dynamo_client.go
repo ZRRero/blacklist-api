@@ -56,7 +56,7 @@ func (receiver *BlacklistDynamoClient) GetRecordByRequest(request *blacklist.Bla
 	return record, nil
 }
 
-func (receiver *BlacklistDynamoClient) GetRecordBatch(requests []*blacklist.BlacklistRecordDto) ([]*models.Record, error) {
+func (receiver *BlacklistDynamoClient) GetRecordBatch(requests []*blacklist.BlacklistRecordRequest) ([]*models.Record, error) {
 	if len(requests) > 25 {
 		return nil, errors.New("ids list has more than BlacklistDynamoClient max batch (25)")
 	}
@@ -75,7 +75,7 @@ func (receiver *BlacklistDynamoClient) GetRecordBatch(requests []*blacklist.Blac
 	return records, nil
 }
 
-func (receiver *BlacklistDynamoClient) getBatchRequestFromRequest(requests []*blacklist.BlacklistRecordDto) map[string]*dynamodb.KeysAndAttributes {
+func (receiver *BlacklistDynamoClient) getBatchRequestFromRequest(requests []*blacklist.BlacklistRecordRequest) map[string]*dynamodb.KeysAndAttributes {
 	items := make([]map[string]*dynamodb.AttributeValue, 0, 25)
 	for _, request := range requests {
 		item := make(map[string]*dynamodb.AttributeValue)
