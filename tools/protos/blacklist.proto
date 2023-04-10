@@ -24,4 +24,10 @@ message BlacklistRecordDto {
   string reason = 5;
 }
 
+message BlacklistProductRecordDto {
+  string product_id = 1;
+  string added_date = 2;
+  string reason = 3;
+}
+
 message Empty {}
