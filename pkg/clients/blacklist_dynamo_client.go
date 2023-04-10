@@ -154,10 +154,14 @@ func (receiver *BlacklistDynamoClient) getWriteBatchRequestFromModel(records []*
 
 //Delete
 
-func (receiver *BlacklistDynamoClient) DeleteRecord(id *string) error {
+func (receiver *BlacklistDynamoClient) DeleteRecord(request *blacklist.BlacklistRecordRequest) error {
+	key := make(map[string]*dynamodb.AttributeValue)
+	sortKey := fmt.Sprintf("%s:%s", request.ClientId, request.ProductId)
+	key["record_id"] = &dynamodb.AttributeValue{S: &request.RecordId}
+	key["sort_id"] = &dynamodb.AttributeValue{S: &sortKey}
 	input := &dynamodb.DeleteItemInput{
 		TableName: &receiver.table,
-		Key:       map[string]*dynamodb.AttributeValue{"id": {S: id}},
+		Key:       key,
 	}
 	_, err := receiver.client.DeleteItem(input)
 	if err != nil {
@@ -166,12 +170,12 @@ func (receiver *BlacklistDynamoClient) DeleteRecord(id *string) error {
 	return nil
 }
 
-func (receiver *BlacklistDynamoClient) DeleteBatchRecords(ids []*string) error {
-	if len(ids) > 25 {
+func (receiver *BlacklistDynamoClient) DeleteBatchRecords(requests []*blacklist.BlacklistRecordRequest) error {
+	if len(requests) > 25 {
 		return errors.New("ids list has more than BlacklistDynamoClient max batch (25)")
 	}
 	input := &dynamodb.BatchWriteItemInput{
-		RequestItems: receiver.getDeleteBatchRequestFromIds(ids),
+		RequestItems: receiver.getDeleteBatchRequestFromRequest(requests),
 	}
 	result, err := receiver.client.BatchWriteItem(input)
 	if err != nil {
@@ -189,12 +193,16 @@ func (receiver *BlacklistDynamoClient) DeleteBatchRecords(ids []*string) error {
 	return nil
 }
 
-func (receiver *BlacklistDynamoClient) getDeleteBatchRequestFromIds(ids []*string) map[string][]*dynamodb.WriteRequest {
+func (receiver *BlacklistDynamoClient) getDeleteBatchRequestFromRequest(requests []*blacklist.BlacklistRecordRequest) map[string][]*dynamodb.WriteRequest {
 	items := make(map[string][]*dynamodb.WriteRequest)
-	requests := make([]*dynamodb.WriteRequest, 0, len(ids))
-	for _, id := range ids {
-		requests = append(requests, &dynamodb.WriteRequest{DeleteRequest: &dynamodb.DeleteRequest{Key: map[string]*dynamodb.AttributeValue{"id": {S: id}}}})
+	batchItems := make([]*dynamodb.WriteRequest, 0, len(requests))
+	for _, request := range requests {
+		key := make(map[string]*dynamodb.AttributeValue)
+		sortKey := fmt.Sprintf("%s:%s", request.ClientId, request.ProductId)
+		key["record_id"] = &dynamodb.AttributeValue{S: &request.RecordId}
+		key["sort_id"] = &dynamodb.AttributeValue{S: &sortKey}
+		batchItems = append(batchItems, &dynamodb.WriteRequest{DeleteRequest: &dynamodb.DeleteRequest{Key: key}})
 	}
-	items[receiver.table] = requests
+	items[receiver.table] = batchItems
 	return items
 }

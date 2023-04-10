@@ -114,9 +114,37 @@ func (receiver *BlacklistServer) SaveBlacklistRecordBatch(stream blacklist.Black
 }
 
 func (receiver *BlacklistServer) DeleteBlacklistRecord(_ context.Context, request *blacklist.BlacklistRecordRequest) (*blacklist.Empty, error) {
-	return nil, nil
+	client, err := clients.NewClient(receiver.Table)
+	if err != nil {
+		return nil, err
+	}
+	err = client.DeleteRecord(request)
+	if err != nil {
+		return nil, err
+	}
+	return &blacklist.Empty{}, nil
 }
 
 func (receiver *BlacklistServer) DeleteBatchBlacklistRecord(stream blacklist.Blacklist_DeleteBatchBlacklistRecordServer) error {
-	return nil
+	client, err := clients.NewClient(receiver.Table)
+	if err != nil {
+		return err
+	}
+	requests := make([]*blacklist.BlacklistRecordRequest, 0, receiver.BatchSize)
+	for {
+		in, err := stream.Recv()
+		if err == io.EOF {
+			return nil
+		}
+		if err != nil {
+			return err
+		}
+		requests = append(requests, in)
+		if len(requests) == 25 {
+			err = client.DeleteBatchRecords(requests)
+			if err != nil {
+				return err
+			}
+		}
+	}
 }
