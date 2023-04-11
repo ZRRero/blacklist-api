@@ -7,5 +7,4 @@ RUN ls /build/bin
 FROM alpine
 COPY --from=build /build/bin/app /run/bin/app
 RUN chmod +x /run/bin/app
-RUN ls /run/bin
 ENTRYPOINT ["./run/bin/app"]
