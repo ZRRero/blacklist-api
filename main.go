@@ -31,6 +31,6 @@ func main() {
 	blacklist.RegisterBlacklistServer(server, &apis.BlacklistServer{Table: table, BatchSize: 25})
 	err = server.Serve(listener)
 	if err != nil {
-		return
+		log.Fatalf("failed to start: %v", err)
 	}
 }
