@@ -8,6 +8,7 @@ service Blacklist {
   rpc GetBlacklistRecordBatch(stream BlacklistRecordRequest) returns (stream BlacklistRecordDto);
   rpc DeleteBlacklistRecord(BlacklistRecordRequest) returns (Empty);
   rpc DeleteBatchBlacklistRecord(stream BlacklistRecordRequest) returns (Empty);
+  rpc HealthCheck(Empty) returns (Empty);
 }
 
 message BlacklistRecordRequest {

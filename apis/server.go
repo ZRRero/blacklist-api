@@ -148,3 +148,7 @@ func (receiver *BlacklistServer) DeleteBatchBlacklistRecord(stream blacklist.Bla
 		}
 	}
 }
+
+func (receiver *BlacklistServer) HealthCheck(_ context.Context, request *blacklist.Empty) (*blacklist.Empty, error) {
+	return request, nil
+}

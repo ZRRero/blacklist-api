@@ -28,6 +28,7 @@ type BlacklistClient interface {
 	GetBlacklistRecordBatch(ctx context.Context, opts ...grpc.CallOption) (Blacklist_GetBlacklistRecordBatchClient, error)
 	DeleteBlacklistRecord(ctx context.Context, in *BlacklistRecordRequest, opts ...grpc.CallOption) (*Empty, error)
 	DeleteBatchBlacklistRecord(ctx context.Context, opts ...grpc.CallOption) (Blacklist_DeleteBatchBlacklistRecordClient, error)
+	HealthCheck(ctx context.Context, in *Empty, opts ...grpc.CallOption) (*Empty, error)
 }
 
 type blacklistClient struct {
@@ -161,6 +162,15 @@ func (x *blacklistDeleteBatchBlacklistRecordClient) CloseAndRecv() (*Empty, erro
 	return m, nil
 }
 
+func (c *blacklistClient) HealthCheck(ctx context.Context, in *Empty, opts ...grpc.CallOption) (*Empty, error) {
+	out := new(Empty)
+	err := c.cc.Invoke(ctx, "/Blacklist/HealthCheck", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // BlacklistServer is the server API for Blacklist service.
 // All implementations must embed UnimplementedBlacklistServer
 // for forward compatibility
@@ -171,6 +181,7 @@ type BlacklistServer interface {
 	GetBlacklistRecordBatch(Blacklist_GetBlacklistRecordBatchServer) error
 	DeleteBlacklistRecord(context.Context, *BlacklistRecordRequest) (*Empty, error)
 	DeleteBatchBlacklistRecord(Blacklist_DeleteBatchBlacklistRecordServer) error
+	HealthCheck(context.Context, *Empty) (*Empty, error)
 	mustEmbedUnimplementedBlacklistServer()
 }
 
@@ -195,6 +206,9 @@ func (UnimplementedBlacklistServer) DeleteBlacklistRecord(context.Context, *Blac
 }
 func (UnimplementedBlacklistServer) DeleteBatchBlacklistRecord(Blacklist_DeleteBatchBlacklistRecordServer) error {
 	return status.Errorf(codes.Unimplemented, "method DeleteBatchBlacklistRecord not implemented")
+}
+func (UnimplementedBlacklistServer) HealthCheck(context.Context, *Empty) (*Empty, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method HealthCheck not implemented")
 }
 func (UnimplementedBlacklistServer) mustEmbedUnimplementedBlacklistServer() {}
 
@@ -341,6 +355,24 @@ func (x *blacklistDeleteBatchBlacklistRecordServer) Recv() (*BlacklistRecordRequ
 	return m, nil
 }
 
+func _Blacklist_HealthCheck_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(Empty)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(BlacklistServer).HealthCheck(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/Blacklist/HealthCheck",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(BlacklistServer).HealthCheck(ctx, req.(*Empty))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // Blacklist_ServiceDesc is the grpc.ServiceDesc for Blacklist service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -359,6 +391,10 @@ var Blacklist_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "DeleteBlacklistRecord",
 			Handler:    _Blacklist_DeleteBlacklistRecord_Handler,
+		},
+		{
+			MethodName: "HealthCheck",
+			Handler:    _Blacklist_HealthCheck_Handler,
 		},
 	},
 	Streams: []grpc.StreamDesc{
